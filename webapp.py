@@ -126,16 +126,29 @@ def fetch_data(url):
                             sesiones = len(sesiones_list)
                             last_session = sesiones_list[-1]
                             if last_session.get("in_progress"):
-                                # --- AJUSTE: asegurar que ambas fechas sean tz-aware ---
+                                # --- AJUSTE: asegurar que ambas fechas sean tz-aware y en America/Montevideo ---
                                 start_dt = pd.to_datetime(last_session.get("start"))
                                 if start_dt.tzinfo is None:
-                                    start_dt = tz_mvd.localize(start_dt)
-                                # Log para depuración
+                                    # Si es naive, asumir UTC y convertir a Montevideo
+                                    import pytz
+                                    start_dt = pytz.UTC.localize(start_dt).astimezone(tz_mvd)
+                                else:
+                                    # Si ya tiene zona, convertir a Montevideo si hace falta
+                                    start_dt = start_dt.astimezone(tz_mvd)
                                 print(f"[DEBUG] now: {now} ({now.tzinfo}), start_dt: {start_dt} ({start_dt.tzinfo})")
                                 minutos = int((now - start_dt.to_pydatetime()).total_seconds() // 60)
                                 cargando_hace = f"{minutos} min"
                             if last_session.get("end"):
-                                ultima_sesion = pd.to_datetime(last_session.get("end")).strftime("%d/%m/%Y %H:%M")
+                                end_dt = pd.to_datetime(last_session.get("end"))
+                                if end_dt.tzinfo is None:
+                                    # Si es naive, asumir UTC y convertir a Montevideo
+                                    import pytz
+                                    end_dt = pytz.UTC.localize(end_dt).astimezone(tz_mvd)
+                                else:
+                                    # Si ya tiene zona, convertir a Montevideo si hace falta
+                                    end_dt = end_dt.astimezone(tz_mvd)
+                                print(f"[DEBUG] ultima_sesion end_dt: {end_dt} ({end_dt.tzinfo})")
+                                ultima_sesion = end_dt.strftime("%d/%m/%Y %H:%M")
                     row = [
                         name,
                         connector_id,
