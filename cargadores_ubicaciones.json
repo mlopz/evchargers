@@ -1,0 +1,982 @@
+[
+  {
+    "station": "Mobility - Open Mall",
+    "lat": -34.9419998,
+    "lon": -54.9361389
+  },
+  {
+    "station": "Auxicar",
+    "lat": -34.88750198,
+    "lon": -56.11521536
+  },
+  {
+    "station": "Aeropuerto Laguna del Sauce",
+    "lat": -34.86150397,
+    "lon": -55.09806819
+  },
+  {
+    "station": "Plaza de Trinidad",
+    "lat": -33.517767,
+    "lon": -56.898331
+  },
+  {
+    "station": "E.M.U.S - Ciudad de la Costa",
+    "lat": -34.84106221,
+    "lon": -55.99397279
+  },
+  {
+    "station": "Parador Roll and Rock",
+    "lat": -34.9482777,
+    "lon": -54.9238125
+  },
+  {
+    "station": "Paseo del Este",
+    "lat": -34.88156138,
+    "lon": -54.95216046
+  },
+  {
+    "station": "Parque de las Ciencias - Lutecio",
+    "lat": -34.81119599,
+    "lon": -56.00011345
+  },
+  {
+    "station": "Café Zinc",
+    "lat": -34.90909981,
+    "lon": -54.86592907
+  },
+  {
+    "station": "Yacht Club - La Fraterna",
+    "lat": -34.779955,
+    "lon": -55.398176
+  },
+  {
+    "station": "Costa Urbana Parking Norte",
+    "lat": -34.840358,
+    "lon": -55.993471
+  },
+  {
+    "station": "Costa Urbana Parking Sur",
+    "lat": -34.841511,
+    "lon": -55.99311
+  },
+  {
+    "station": "Zonamerica",
+    "lat": -34.791556,
+    "lon": -56.070599
+  },
+  {
+    "station": "Parque de las Ciencias - Administración",
+    "lat": -34.812505,
+    "lon": -56.004778
+  },
+  {
+    "station": "Quijano Moto / Bici",
+    "lat": -34.905933340359525,
+    "lon": -56.18901969484681
+  },
+  {
+    "station": "Quijano VMP",
+    "lat": -34.90593402658537,
+    "lon": -56.189122533520546
+  },
+  {
+    "station": "Etek Uruguay",
+    "lat": -34.873804,
+    "lon": -54.950886
+  },
+  {
+    "station": "Parking MP Setiembre ",
+    "lat": -34.8981172,
+    "lon": -56.1590423
+  },
+  {
+    "station": "MP Punta del Este",
+    "lat": -34.9377619,
+    "lon": -54.937226
+  },
+  {
+    "station": "UTE Palacio de la Luz - Aguilar",
+    "lat": -34.885144,
+    "lon": -56.195179
+  },
+  {
+    "station": "UTE ANCAP Colonia del Sacramento",
+    "lat": -34.471664,
+    "lon": -57.841764
+  },
+  {
+    "station": "UTE Estación Península",
+    "lat": -34.967524,
+    "lon": -54.951832
+  },
+  {
+    "station": "UTE ANCAP Chuy",
+    "lat": -33.694694,
+    "lon": -53.455267
+  },
+  {
+    "station": "UTE Electrolinera Leguizamón",
+    "lat": -34.896317,
+    "lon": -56.140618
+  },
+  {
+    "station": "UTE ANCAP La Radial",
+    "lat": -34.559155,
+    "lon": -56.744655
+  },
+  {
+    "station": "UTE ANCAP Aeropuerto",
+    "lat": -34.8448727,
+    "lon": -56.0202782
+  },
+  {
+    "station": "UTE ANCAP Rosario",
+    "lat": -34.322365,
+    "lon": -57.349989
+  },
+  {
+    "station": "UTE ANCAP San Luis",
+    "lat": -34.77033,
+    "lon": -55.576509
+  },
+  {
+    "station": "UTE Intendencia",
+    "lat": -34.905827,
+    "lon": -56.185525
+  },
+  {
+    "station": "UTE UTEC Durazno",
+    "lat": -33.387208,
+    "lon": -56.51478
+  },
+  {
+    "station": "UTE ANCAP Trinidad",
+    "lat": -33.513166,
+    "lon": -56.907767
+  },
+  {
+    "station": "UTE Parque Santa Teresa",
+    "lat": -34.002017,
+    "lon": -53.552156
+  },
+  {
+    "station": "UTE ANCAP Buena Unión",
+    "lat": -31.252128,
+    "lon": -55.664532
+  },
+  {
+    "station": "UTE ANCAP Durazno",
+    "lat": -33.393937,
+    "lon": -56.52298
+  },
+  {
+    "station": "UTE ANCAP Cerro Colorado",
+    "lat": -33.865605,
+    "lon": -55.550759
+  },
+  {
+    "station": "UTE ANCAP Paso de los Toros",
+    "lat": -32.793311,
+    "lon": -56.520291
+  },
+  {
+    "station": "UTE Belloni",
+    "lat": -34.8552258,
+    "lon": -56.1321889
+  },
+  {
+    "station": "UTE ANCAP José Batlle y Ordóñez",
+    "lat": -33.47043,
+    "lon": -55.15019
+  },
+  {
+    "station": "UTE ANCAP José Pedro Varela",
+    "lat": -33.457275,
+    "lon": -54.527432
+  },
+  {
+    "station": "UTE ANCAP Vichadero",
+    "lat": -31.775192,
+    "lon": -54.687176
+  },
+  {
+    "station": "UTE ANCAP Velázquez",
+    "lat": -34.034776,
+    "lon": -54.280123
+  },
+  {
+    "station": "UTE ANCAP Fray Bentos",
+    "lat": -33.169447,
+    "lon": -58.181172
+  },
+  {
+    "station": "UTE ANCAP José Enrique Rodó",
+    "lat": -33.700847,
+    "lon": -57.525943
+  },
+  {
+    "station": "UTE ANCAP Florencio Sanchez",
+    "lat": -33.875561,
+    "lon": -57.372838
+  },
+  {
+    "station": "UTE ANCAP Carmelo",
+    "lat": -33.986462,
+    "lon": -58.282765
+  },
+  {
+    "station": "UTE ANCAP Nueva Palmira",
+    "lat": -33.885016,
+    "lon": -58.381832
+  },
+  {
+    "station": "UTE ANCAP Dolores",
+    "lat": -33.517676,
+    "lon": -58.203379
+  },
+  {
+    "station": "UTE ANCAP Car One",
+    "lat": -34.817322,
+    "lon": -55.97914
+  },
+  {
+    "station": "UTE ANCAP San José de Mayo - Ocampo",
+    "lat": -34.33246,
+    "lon": -56.726218
+  },
+  {
+    "station": "UTE ANCAP Tala",
+    "lat": -34.343524,
+    "lon": -55.758813
+  },
+  {
+    "station": "UTE ANCAP Bella Unión",
+    "lat": -30.2715,
+    "lon": -57.585944
+  },
+  {
+    "station": "UTE Parque de la amistad",
+    "lat": -34.9022053,
+    "lon": -56.1461137
+  },
+  {
+    "station": "UTE ANCAP Guichón",
+    "lat": -32.35879,
+    "lon": -57.202215
+  },
+  {
+    "station": "UTE ANCAP Minas",
+    "lat": -34.376132,
+    "lon": -55.246748
+  },
+  {
+    "station": "UTE ANCAP Treinta y Tres",
+    "lat": -33.236092,
+    "lon": -54.39778
+  },
+  {
+    "station": "UTE ANCAP Young",
+    "lat": -32.704954,
+    "lon": -57.630866
+  },
+  {
+    "station": "UTE ANCAP Paysandú",
+    "lat": -32.35249,
+    "lon": -58.050937
+  },
+  {
+    "station": "UTE ANCAP La Paz",
+    "lat": -34.750076,
+    "lon": -56.252772
+  },
+  {
+    "station": "UTE ANCAP Canelones",
+    "lat": -34.513028,
+    "lon": -56.245954
+  },
+  {
+    "station": "UTE ANCAP Salto",
+    "lat": -31.426445,
+    "lon": -57.933983
+  },
+  {
+    "station": "UTE ANCAP Sarandí del Yí",
+    "lat": -33.344227,
+    "lon": -55.628443
+  },
+  {
+    "station": "UTE Golf",
+    "lat": -34.927901,
+    "lon": -56.161484
+  },
+  {
+    "station": "UTE ANCAP Mariscala",
+    "lat": -34.046532,
+    "lon": -54.782152
+  },
+  {
+    "station": "UTE ANCAP Rio Branco",
+    "lat": -32.598919,
+    "lon": -53.416144
+  },
+  {
+    "station": "UTE ANCAP Melo",
+    "lat": -32.363165,
+    "lon": -54.166607
+  },
+  {
+    "station": "UTE ANCAP Caraguatá",
+    "lat": -32.232676,
+    "lon": -54.966438
+  },
+  {
+    "station": "UTE ANCAP Piedra del Toro",
+    "lat": -34.694035,
+    "lon": -55.856194
+  },
+  {
+    "station": "UTE ANCAP Florida",
+    "lat": -34.096919,
+    "lon": -56.196372
+  },
+  {
+    "station": "UTE CETEC Norte UTE - Paso de los Toros",
+    "lat": -32.813112,
+    "lon": -56.503748
+  },
+  {
+    "station": "UTE Plaza 33 Orientales",
+    "lat": -31.387629,
+    "lon": -57.970822
+  },
+  {
+    "station": "UTE Termas del Arapey",
+    "lat": -30.9471624,
+    "lon": -57.5222452
+  },
+  {
+    "station": "UTE Plaza de Chamizo",
+    "lat": -34.24366,
+    "lon": -55.917378
+  },
+  {
+    "station": "UTE Almenara Mall",
+    "lat": -34.826401,
+    "lon": -55.997381
+  },
+  {
+    "station": "UTE Plaza Sarandí Durazno",
+    "lat": -33.37675,
+    "lon": -56.524798
+  },
+  {
+    "station": "UTE La Cumparsita",
+    "lat": -34.914665,
+    "lon": -56.185604
+  },
+  {
+    "station": "UTE ANCAP Solanas",
+    "lat": -34.878541,
+    "lon": -55.053068
+  },
+  {
+    "station": "UTE Punta del Este - Parada 3",
+    "lat": -34.95026,
+    "lon": -54.937023
+  },
+  {
+    "station": "UTE Punta del Este - Parada 5",
+    "lat": -34.942108,
+    "lon": -54.932418
+  },
+  {
+    "station": "UTE ANCAP José Ignacio",
+    "lat": -34.835025,
+    "lon": -54.644789
+  },
+  {
+    "station": "UTE Terminal Piriápolis",
+    "lat": -34.86203,
+    "lon": -55.274783
+  },
+  {
+    "station": "UTE Plaza San Martín",
+    "lat": -34.875475,
+    "lon": -56.200208
+  },
+  {
+    "station": "UTE Estadio Centenario",
+    "lat": -34.8917115,
+    "lon": -56.1543685
+  },
+  {
+    "station": "UTE Plaza Colón",
+    "lat": -34.805776,
+    "lon": -56.221745
+  },
+  {
+    "station": "UTE ANCAP Constancia",
+    "lat": -32.20649,
+    "lon": -58.002403
+  },
+  {
+    "station": "UTE ANCAP Trinidad - Ruta 3",
+    "lat": -33.52803,
+    "lon": -56.894656
+  },
+  {
+    "station": "UTE Policia Caminera Ruta 17",
+    "lat": -33.210155,
+    "lon": -54.385449
+  },
+  {
+    "station": "UTE ANCAP América Tacuarembó",
+    "lat": -31.7262242,
+    "lon": -55.9718609
+  },
+  {
+    "station": "UTE Plaza Artigas - Rivera",
+    "lat": -30.899893,
+    "lon": -55.5410613
+  },
+  {
+    "station": "UTE Termas de Daymán",
+    "lat": -31.4558512,
+    "lon": -57.9096333
+  },
+  {
+    "station": "UTE Cardal",
+    "lat": -34.2983661,
+    "lon": -56.391217
+  },
+  {
+    "station": "UTE Plaza Asamblea",
+    "lat": -34.1012235,
+    "lon": -56.2143769
+  },
+  {
+    "station": "UTE Plaza de los Niños",
+    "lat": -30.4047844,
+    "lon": -56.4629124
+  },
+  {
+    "station": "UTE Plaza Artigas",
+    "lat": -30.3981813,
+    "lon": -56.4641254
+  },
+  {
+    "station": "UTE Terminal San Carlos",
+    "lat": -34.7934735,
+    "lon": -54.9239085
+  },
+  {
+    "station": "UTE Plaza Independencia Durazno",
+    "lat": -33.38006,
+    "lon": -56.522342
+  },
+  {
+    "station": "UTE Plaza Constitución Trinidad",
+    "lat": -33.517081,
+    "lon": -56.898402
+  },
+  {
+    "station": "UTE Plaza Pedro Poveda DC",
+    "lat": -34.870495,
+    "lon": -56.187443
+  },
+  {
+    "station": "UTE Ecoparque Talice",
+    "lat": -33.508249,
+    "lon": -56.937011
+  },
+  {
+    "station": "UTE Plaza San Jacinto",
+    "lat": -34.5441427,
+    "lon": -55.8711889
+  },
+  {
+    "station": "UTE Plaza de Toros de Colonia",
+    "lat": -34.437433,
+    "lon": -57.8650452
+  },
+  {
+    "station": "UTE Terminal Fray Bentos",
+    "lat": -33.123088,
+    "lon": -58.304784
+  },
+  {
+    "station": "UTE Plaza Los Fundadores",
+    "lat": -34.2848757,
+    "lon": -57.2338976
+  },
+  {
+    "station": "UTE Colonia Valdense",
+    "lat": -34.3371311,
+    "lon": -57.2530074
+  },
+  {
+    "station": "UTE Plaza Rivera, Fray Bentos",
+    "lat": -33.130505,
+    "lon": -58.29644
+  },
+  {
+    "station": "UTE Plaza Romay, Nuevo Berlín",
+    "lat": -32.980167,
+    "lon": -58.06165
+  },
+  {
+    "station": "UTE Plaza De la Familia - Carmelo ",
+    "lat": -33.989815,
+    "lon": -58.281705
+  },
+  {
+    "station": "UTE Plaza Artigas La Floresta",
+    "lat": -34.759725,
+    "lon": -55.672995
+  },
+  {
+    "station": "UTE Gremial del Taxi CPATU",
+    "lat": -34.868071,
+    "lon": -56.186521
+  },
+  {
+    "station": "UTE San José DC 1",
+    "lat": -34.342544,
+    "lon": -56.70298
+  },
+  {
+    "station": "UTE Panda Free Shop",
+    "lat": -32.5823359,
+    "lon": -53.3785893
+  },
+  {
+    "station": "UTE San Ramón",
+    "lat": -34.288229,
+    "lon": -55.958338
+  },
+  {
+    "station": "UTE Libertad",
+    "lat": -34.6361232,
+    "lon": -56.6227858
+  },
+  {
+    "station": "UTE Ciudad Rodríguez",
+    "lat": -34.3989889,
+    "lon": -56.543087
+  },
+  {
+    "station": "UTE Plaza José Gervasio Artigas San José",
+    "lat": -34.338951,
+    "lon": -56.707558
+  },
+  {
+    "station": "UTE ANCAP Ciudad del Plata",
+    "lat": -34.737758,
+    "lon": -56.44172
+  },
+  {
+    "station": "UTE Ecilda Paullier",
+    "lat": -34.3625884,
+    "lon": -57.0574784
+  },
+  {
+    "station": "UTE Macromercado San Martín",
+    "lat": -34.86701,
+    "lon": -56.17997
+  },
+  {
+    "station": "UTE ANCAP Francolino Paysandú",
+    "lat": -32.3183645,
+    "lon": -58.0743682
+  },
+  {
+    "station": "UTE ANCAP Rivera y Bolivia",
+    "lat": -34.890595,
+    "lon": -56.07239
+  },
+  {
+    "station": "UTE Vieja Usina UTE - Treinta y Tres",
+    "lat": -33.2346165,
+    "lon": -54.3985881
+  },
+  {
+    "station": "UTE ANCAP Tupambaé",
+    "lat": -32.8384494,
+    "lon": -54.7620305
+  },
+  {
+    "station": "UTE Estadio Martínez Monegal",
+    "lat": -34.5226273,
+    "lon": -56.2752567
+  },
+  {
+    "station": "UTE Minas de Corrales",
+    "lat": -31.5706537,
+    "lon": -55.4714895
+  },
+  {
+    "station": "UTE Tranqueras - Plaza Los 33 Orientales",
+    "lat": -31.1907841,
+    "lon": -55.7671658
+  },
+  {
+    "station": "UTE Macromercado Rivera",
+    "lat": -30.9204939,
+    "lon": -55.5398168
+  },
+  {
+    "station": "UTE Barrio Dos Naciones",
+    "lat": -31.36716,
+    "lon": -57.960458
+  },
+  {
+    "station": "UTE Plaza Paul Harris",
+    "lat": -34.8763551,
+    "lon": -56.0377477
+  },
+  {
+    "station": "UTE Terminal del Cerro",
+    "lat": -34.873082,
+    "lon": -56.248884
+  },
+  {
+    "station": "UTE Parque de Minas",
+    "lat": -34.4254385,
+    "lon": -55.1938313
+  },
+  {
+    "station": "UTE Rincón de Valentín",
+    "lat": -31.2809458,
+    "lon": -57.1992881
+  },
+  {
+    "station": "UTE Estadio Parque Artigas",
+    "lat": -32.3224331,
+    "lon": -58.0716883
+  },
+  {
+    "station": "UTE Hospital BSE",
+    "lat": -34.86731,
+    "lon": -56.160038
+  },
+  {
+    "station": "UTE Plaza Artigas - Mercedes",
+    "lat": -33.2565621,
+    "lon": -58.0277748
+  },
+  {
+    "station": "UTE ANCAP Sauce",
+    "lat": -34.646658,
+    "lon": -56.058881
+  },
+  {
+    "station": "UTE Centro de Atención Turística Atlántida",
+    "lat": -34.7691071,
+    "lon": -55.7644038
+  },
+  {
+    "station": "UTE Hospital de Pan de Azúcar",
+    "lat": -34.7787262,
+    "lon": -55.2240453
+  },
+  {
+    "station": "UTE Batoví",
+    "lat": -34.890289,
+    "lon": -56.185279
+  },
+  {
+    "station": "UTE Junta Local Centenario",
+    "lat": -32.83409,
+    "lon": -56.496295
+  },
+  {
+    "station": "UTE Hospital de Ojos Saint Bois",
+    "lat": -34.7889098,
+    "lon": -56.2417871
+  },
+  {
+    "station": "UTE Colonia Shopping",
+    "lat": -34.4661563,
+    "lon": -57.835495
+  },
+  {
+    "station": "UTE 447 Duty Free Shop",
+    "lat": -31.8678235,
+    "lon": -54.1667246
+  },
+  {
+    "station": "UTE Shopping Las Piedras",
+    "lat": -34.7257925,
+    "lon": -56.2027049
+  },
+  {
+    "station": "UTE Montevideo Shopping",
+    "lat": -34.903968,
+    "lon": -56.136669
+  },
+  {
+    "station": "UTE Plaza Artigas Florencio Sánchez",
+    "lat": -33.8758797,
+    "lon": -57.3708861
+  },
+  {
+    "station": "UTE Av. Fco. Soca y Libertad",
+    "lat": -34.908627,
+    "lon": -56.153853
+  },
+  {
+    "station": "UTE Rocha - Oficina de Turismo",
+    "lat": -34.488761,
+    "lon": -54.320398
+  },
+  {
+    "station": "UTE La Pedrera",
+    "lat": -34.591214,
+    "lon": -54.127803
+  },
+  {
+    "station": "UTE Centro Cultural La Paloma",
+    "lat": -34.658477,
+    "lon": -54.154971
+  },
+  {
+    "station": "UTE Casino Parque Hotel",
+    "lat": -34.9128478,
+    "lon": -56.1696179
+  },
+  {
+    "station": "UTE Parque del Plata",
+    "lat": -34.769568,
+    "lon": -55.7294
+  },
+  {
+    "station": "UTE ANCAP Mercedes",
+    "lat": -33.26307,
+    "lon": -58.017944
+  },
+  {
+    "station": "UTE Plaza Atlántida",
+    "lat": -34.77453,
+    "lon": -55.76064
+  },
+  {
+    "station": "UTE Hotel NH Montevideo",
+    "lat": -34.909845,
+    "lon": -56.204714
+  },
+  {
+    "station": "UTE Macromercado Carrasco",
+    "lat": -34.870062,
+    "lon": -56.022234
+  },
+  {
+    "station": "UTE Skatepark Carrasco",
+    "lat": -34.8843476,
+    "lon": -56.0580876
+  },
+  {
+    "station": "UTE ANCAP Ruta 1 y Camino Flores",
+    "lat": -34.818895,
+    "lon": -56.344162
+  },
+  {
+    "station": "UTE ANCAP Sarandí Grande",
+    "lat": -33.734268,
+    "lon": -56.32209
+  },
+  {
+    "station": "UTE Macromercado Maldonado",
+    "lat": -34.915348,
+    "lon": -54.944933
+  },
+  {
+    "station": "UTE Municipio Vergara",
+    "lat": -32.937824,
+    "lon": -53.937334
+  },
+  {
+    "station": "UTE Plaza Sauce",
+    "lat": -34.650089,
+    "lon": -56.064885
+  },
+  {
+    "station": "UTE Plaza Constitución Fray Bentos",
+    "lat": -33.116197,
+    "lon": -58.313329
+  },
+  {
+    "station": "UTE ANCAP Ruta 39 y Perimetral",
+    "lat": -34.881119,
+    "lon": -54.950266
+  },
+  {
+    "station": "UTE ANCAP 18 de Julio - Tacuarembó",
+    "lat": -31.7184905,
+    "lon": -55.9856609
+  },
+  {
+    "station": "UTE Tambores",
+    "lat": -31.8769125,
+    "lon": -56.240687
+  },
+  {
+    "station": "UTE UTEC Rivera",
+    "lat": -30.9324033,
+    "lon": -55.5476072
+  },
+  {
+    "station": "UTE Plaza Pando",
+    "lat": -34.7212569,
+    "lon": -55.959839
+  },
+  {
+    "station": "UTE La Paloma",
+    "lat": -34.663984,
+    "lon": -54.157528
+  },
+  {
+    "station": "UTE Plaza Samuel Lafone",
+    "lat": -34.867971,
+    "lon": -56.2367881
+  },
+  {
+    "station": "UTE Plaza Batlle y Ordóñez",
+    "lat": -30.4035965,
+    "lon": -56.4691187
+  },
+  {
+    "station": "UTE Plaza Rivera Minas",
+    "lat": -34.37563,
+    "lon": -55.242589
+  },
+  {
+    "station": "UTE San Rafael",
+    "lat": -34.9408281,
+    "lon": -54.9162997
+  },
+  {
+    "station": "UTE Plaza de Deportes de Pando",
+    "lat": -34.723076,
+    "lon": -55.957135
+  },
+  {
+    "station": "UTE Palacio de la Luz - Paraguay",
+    "lat": -34.885124,
+    "lon": -56.194744
+  },
+  {
+    "station": "UTE La Paloma Durazno",
+    "lat": -32.727884,
+    "lon": -55.576405
+  },
+  {
+    "station": "UTE Plaza Artigas Villa del Carmen",
+    "lat": -33.241286,
+    "lon": -56.013596
+  },
+  {
+    "station": "UTE Estadio Municipal Parque Liebig's",
+    "lat": -33.119171,
+    "lon": -58.318528
+  },
+  {
+    "station": "UTE Shopping Nuevocentro",
+    "lat": -34.869657,
+    "lon": -56.169246
+  },
+  {
+    "station": "UTE CHUY DFA ",
+    "lat": -33.693156,
+    "lon": -53.448956
+  },
+  {
+    "station": "UTE Museo Zorrilla",
+    "lat": -34.9277636,
+    "lon": -56.1598697
+  },
+  {
+    "station": "UTE Duty Free Shop Fray Bentos",
+    "lat": -33.113267,
+    "lon": -58.24494
+  },
+  {
+    "station": "UTE Pinamar DC",
+    "lat": -34.7787832,
+    "lon": -55.8615145
+  },
+  {
+    "station": "UTE El Pinar",
+    "lat": -34.804275,
+    "lon": -55.90957
+  },
+  {
+    "station": "UTE Novillo Alegre Punta",
+    "lat": -34.935722,
+    "lon": -54.937054
+  },
+  {
+    "station": "UTE Municipio Punta del Este",
+    "lat": -34.9595654,
+    "lon": -54.9400916
+  },
+  {
+    "station": "UTE Joanicó",
+    "lat": -34.87903,
+    "lon": -56.148899
+  },
+  {
+    "station": "UTE CINEMATECA",
+    "lat": -34.908617,
+    "lon": -56.200841
+  },
+  {
+    "station": "UTE UAM",
+    "lat": -34.8203761,
+    "lon": -56.2699141
+  },
+  {
+    "station": "UTE ANCAP Rocha",
+    "lat": -34.496353,
+    "lon": -54.327217
+  },
+  {
+    "station": "UTE La Barra",
+    "lat": -34.9133183,
+    "lon": -54.8618576
+  },
+  {
+    "station": "UTE Plaza Libertad, San Javier",
+    "lat": -32.665965,
+    "lon": -58.134127
+  },
+  {
+    "station": "eOne Car One Center 1",
+    "lat": -34.816714,
+    "lon": -55.978687
+  },
+  {
+    "station": "eOne Axion Carrasco",
+    "lat": -34.892617,
+    "lon": -56.058319
+  },
+  {
+    "station": "eOne Géant 1",
+    "lat": -34.866572,
+    "lon": -56.024383
+  },
+  {
+    "station": "eOne Disco Fresh Market Av Italia 1",
+    "lat": -34.886972,
+    "lon": -56.14145
+  },
+  {
+    "station": "eOne Disco 8 de Octubre y Garibaldi",
+    "lat": -34.890037,
+    "lon": -56.160966
+  },
+  {
+    "station": "UTE Terminal del Cerro 2",
+    "lat": -34.873204,
+    "lon": -56.249964
+  }
+]

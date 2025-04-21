@@ -1,0 +1,23 @@
+__pycache__/
+.env
+*.pyc
+*.pyo
+*.pyd
+monitor_log.csv
+costo energia.csv
+instance/
+.webassets-cache
+*.db
+.DS_Store
+*.sqlite3
+*.log
+*.pot
+*.mo
+.idea/
+.vscode/
+*.swp
+*.bak
+node_modules/
+dist/
+build/
+__MACOSX/

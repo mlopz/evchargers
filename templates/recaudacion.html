@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recaudación por Cargador</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>
+        body { background: #f6f6f6; }
+        .card { margin-top: 32px; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="/">EV Chargers</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/data">Datos</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="/recaudacion">Recaudación</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+  <div class="card">
+    <div class="card-header bg-secondary text-white">
+      <h4 class="mb-0">Recaudación estimada por cargador</h4>
+    </div>
+    <div class="card-body">
+      <p class="mb-2 text-muted" style="font-size:0.97em">
+        Calculada según sesiones y minutos de carga en el periodo seleccionado. Potencia promedio asumida: 60 kW. Si faltan datos de tarifas o identificación, se muestra una nota.
+      </p>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="daterange">Rango de fechas:</label>
+          <input type="text" id="daterange" class="form-control" style="width: 220px;" readonly>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="alert alert-info mb-0">
+          <strong>Opciones de tarifa UTE:</strong><br>
+          <ul class="mb-0">
+            <li><b>SG (Simple):</b> Tarifa plana todo el día.</li>
+            <li><b>SDBH (Horaria):</b> Tarifa diferenciada: más cara en horario punta (18–22 h), más barata en el resto del día.</li>
+            <li><b>GDM (Media tensión):</b> Tarifa diferenciada en tres franjas: punta, llano y valle, requiere contrato de potencia.</li>
+            <li><b>GMT (Grandes Usuarios):</b> Tarifa variable, generalmente la más baja pero requiere gran consumo.</li>
+          </ul>
+        </div>
+        <button id="limpiarDatos" class="btn btn-danger ms-3">Limpiar datos</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered" id="tablaRecaudacion">
+          <thead>
+            <tr>
+              <th>Estación</th>
+              <th>kWh consumidos</th>
+              <th>Recaudación bruta</th>
+              <th>Neta SG</th>
+              <th>Neta SDBH</th>
+              <th>Neta GDM</th>
+              <th>Neta GMT</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyRecaudacion">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+<script>
+let tabla = null;
+$('#limpiarDatos').on('click', function() {
+    if (confirm('¿Seguro que quieres limpiar todos los datos? Esta acción no se puede deshacer.')) {
+        $.post('/limpiar-datos', function(resp) {
+            if (resp.status === 'ok') {
+                cargarRecaudacion();
+                alert('Datos limpiados correctamente');
+            } else {
+                alert('Error: ' + resp.message);
+            }
+        });
+    }
+});
+function cargarRecaudacion(start, end) {
+    let params = '';
+    if (start && end) {
+        params = `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+    }
+    console.log('Solicitando recaudación:', params);
+    $.getJSON(`/data-recaudacion${params}`, function(data) {
+        console.log('Respuesta recaudación:', data);
+        let filas = [];
+        if (data.status === 'ok' && data.recaudacion.length > 0) {
+            data.recaudacion.forEach(function(row) {
+                filas.push([
+                    row.station,
+                    row.kwh !== null ? row.kwh : '-',
+                    row.recaudacion !== null ? row.recaudacion : '-',
+                    row.neta_sg !== null ? row.neta_sg : '-',
+                    row.neta_sdbh !== null ? row.neta_sdbh : '-',
+                    row.neta_gdm !== null ? row.neta_gdm : '-',
+                    row.neta_gmt !== null ? row.neta_gmt : '-'
+                ]);
+            });
+            console.log('Filas generadas:', filas.length);
+        } else {
+            filas.push(['Sin datos en el rango seleccionado', '', '', '', '', '', '']);
+            console.log('Sin datos para mostrar');
+        }
+        if (tabla) {
+            tabla.clear();
+            tabla.rows.add(filas);
+            tabla.draw();
+        } else {
+            tabla = $('#tablaRecaudacion').DataTable({
+                data: filas,
+                ordering: true,
+                order: [[2, 'desc']],
+                columnDefs: [
+                    { targets: [1], type: 'num', render: function(data, type, row) {
+                        if (type === 'display' && data !== '-' && data !== undefined && data !== null && !isNaN(data)) {
+                            return parseFloat(data).toLocaleString('es-UY', {minimumFractionDigits:2, maximumFractionDigits:2});
+                        }
+                        return data;
+                    } },
+                    { targets: [2,3,4,5,6], type: 'num', render: function(data, type, row) {
+                        if (type === 'display' && data !== '-' && data !== undefined && data !== null && !isNaN(data)) {
+                            return '$ ' + parseFloat(data).toLocaleString('es-UY', {minimumFractionDigits:2, maximumFractionDigits:2});
+                        }
+                        return data;
+                    } }
+                ],
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                }
+            });
+        }
+    });
+}
+$(function() {
+    let start = moment().subtract(30, 'days');
+    let end = moment();
+    function cb(start, end) {
+        $('#daterange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+        cargarRecaudacion(start.format('DD/MM/YYYY'), end.format('DD/MM/YYYY'));
+    }
+    $('#daterange').daterangepicker({
+        startDate: start,
+        endDate: end,
+        locale: {
+            format: 'DD/MM/YYYY',
+            separator: ' - ',
+            applyLabel: 'Aplicar',
+            cancelLabel: 'Cancelar',
+            fromLabel: 'Desde',
+            toLabel: 'Hasta',
+            customRangeLabel: 'Personalizado',
+            daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
+            monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+            firstDay: 1
+        }
+    }, cb);
+    cb(start, end);
+});
+</script>
+</body>
+</html>
