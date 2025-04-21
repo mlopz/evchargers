@@ -63,7 +63,7 @@ def build_sessions_with_timeout(df):
                 in_session = False
     # Si queda una sesión abierta al final (en curso), agregarla aunque la duración sea 0
     if in_session and start_time is not None:
-        now = pd.Timestamp.now()
+        now = pd.Timestamp.now(tz='America/Montevideo')
         duration = (now - start_time).total_seconds() // 60
         results.append({
             "start": start_time,
@@ -394,6 +394,8 @@ def data_metrics():
                     in_session = False
         if in_session and start_time is not None:
             end_time = grp["timestamp"].max()
+            if end_time.tzinfo is None:
+                end_time = end_time.tz_localize('America/Montevideo')
             duration = (end_time - start_time).total_seconds() // 60
             if duration > 0:
                 sessions.append((start_time, end_time, duration))
@@ -554,6 +556,8 @@ def data_demand_map():
         # Si queda una sesión abierta al final
         if in_session and start_time is not None:
             end_time = grp["timestamp"].max()
+            if end_time.tzinfo is None:
+                end_time = end_time.tz_localize('America/Montevideo')
             duration = (end_time - start_time).total_seconds() // 60
             if duration > 0:
                 sessions.append((start_time, end_time, duration))
@@ -640,6 +644,8 @@ def data_chargers_summary():
                     in_session = False
         if in_session and start_time is not None:
             end_time = grp["timestamp"].max()
+            if end_time.tzinfo is None:
+                end_time = end_time.tz_localize('America/Montevideo')
             duration = (end_time - start_time).total_seconds() // 60
             if duration > 0:
                 sessions.append((start_time, end_time, duration))
@@ -728,6 +734,8 @@ def data_recaudacion():
                     in_session = False
         if in_session and start_time is not None:
             end_time = grp["timestamp"].max()
+            if end_time.tzinfo is None:
+                end_time = end_time.tz_localize('America/Montevideo')
             duration = (end_time - start_time).total_seconds() // 60
             if duration > 0:
                 sessions.append((start_time, end_time, duration))
