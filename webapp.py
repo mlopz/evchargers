@@ -92,7 +92,10 @@ def fetch_data(url):
         except Exception:
             df = pd.DataFrame(columns=["timestamp","station","connector_type","status"])
         rows = []
-        now = datetime.datetime.now()
+        # --- AJUSTE: usar now con tz-aware ---
+        import pytz
+        tz_mvd = pytz.timezone('America/Montevideo')
+        now = datetime.datetime.now(tz_mvd)
         for item in records:
             name = item.get("name", "")
             # Asegurarse de que el campo correcto para conectores es 'connectors'
@@ -123,7 +126,13 @@ def fetch_data(url):
                             sesiones = len(sesiones_list)
                             last_session = sesiones_list[-1]
                             if last_session.get("in_progress"):
-                                minutos = int((now - pd.to_datetime(last_session.get("start")).to_pydatetime()).total_seconds() // 60)
+                                # --- AJUSTE: asegurar que ambas fechas sean tz-aware ---
+                                start_dt = pd.to_datetime(last_session.get("start"))
+                                if start_dt.tzinfo is None:
+                                    start_dt = tz_mvd.localize(start_dt)
+                                # Log para depuración
+                                print(f"[DEBUG] now: {now} ({now.tzinfo}), start_dt: {start_dt} ({start_dt.tzinfo})")
+                                minutos = int((now - start_dt.to_pydatetime()).total_seconds() // 60)
                                 cargando_hace = f"{minutos} min"
                             if last_session.get("end"):
                                 ultima_sesion = pd.to_datetime(last_session.get("end")).strftime("%d/%m/%Y %H:%M")
