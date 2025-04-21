@@ -86,9 +86,10 @@ def fetch_data(url):
             records = []
         # Cargar log de sesiones
         try:
-            log_df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
         except Exception:
-            log_df = pd.DataFrame(columns=["timestamp","station","connector_type","status"])
+            df = pd.DataFrame(columns=["timestamp","station","connector_type","status"])
         rows = []
         now = datetime.datetime.now()
         for item in records:
@@ -114,8 +115,8 @@ def fetch_data(url):
                     sesiones = []
                     cargando_hace = "-"
                     ultima_sesion = "-"
-                    if not log_df.empty:
-                        log_filt = log_df[(log_df["station"] == name) & (log_df["connector_type"] == connector_id)]
+                    if not df.empty:
+                        log_filt = df[(df["station"] == name) & (df["connector_type"] == connector_id)]
                         sesiones_list = build_sessions_with_timeout(log_filt)
                         if sesiones_list:
                             sesiones = len(sesiones_list)
@@ -309,6 +310,7 @@ def sessions_detail():
     connector = request.args.get("connector")
     try:
         df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
     except Exception:
         return jsonify([])
     # Buscar por identificador único de conector
@@ -325,6 +327,7 @@ def sessions_detail():
 def download_report():
     # Leer logs y generar sesiones
     df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+    df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
     sessions_df = build_sessions_with_timeout(df)
     # Generar archivo Excel en memoria
     output = BytesIO()
@@ -360,6 +363,7 @@ def data_metrics():
         start_dt = end_dt = None
     try:
         df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
     except Exception:
         return {"status": "error", "message": "No se pudo leer el log"}
     if start_dt is not None:
@@ -516,6 +520,7 @@ def data_demand_map():
     # Leer log
     try:
         df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
     except Exception:
         return {"status": "error", "message": "No se pudo leer el log"}
     if start_dt is not None:
@@ -602,6 +607,7 @@ def data_chargers_summary():
         start_dt = end_dt = None
     try:
         df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
     except Exception:
         return {"status": "error", "message": "No se pudo leer el log"}
     if start_dt is not None:
@@ -677,6 +683,7 @@ def data_recaudacion():
         start_dt = end_dt = None
     try:
         df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
     except Exception:
         return {"status": "error", "message": "No se pudo leer el log"}
     # Leer tarifas desde el CSV
