@@ -3,8 +3,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-monitor_log.csv
-costo energia.csv
+# monitor_log.csv
+# costo energia.csv
 instance/
 .webassets-cache
 *.db
