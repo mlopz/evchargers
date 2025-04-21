@@ -357,8 +357,9 @@ def data_metrics():
     end = request.args.get('end')
     date_format = '%d/%m/%Y'
     try:
-        start_dt = datetime.datetime.strptime(start, date_format) if start else None
-        end_dt = datetime.datetime.strptime(end, date_format) if end else None
+        import pandas as pd
+        start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
+        end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
     except Exception:
         start_dt = end_dt = None
     try:
@@ -513,8 +514,9 @@ def data_demand_map():
     # Formato esperado: DD/MM/YYYY
     date_format = '%d/%m/%Y'
     try:
-        start_dt = datetime.datetime.strptime(start, date_format) if start else None
-        end_dt = datetime.datetime.strptime(end, date_format) if end else None
+        import pandas as pd
+        start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
+        end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
     except Exception:
         start_dt = end_dt = None
     # Leer log
@@ -601,8 +603,9 @@ def data_chargers_summary():
     end = request.args.get('end')
     date_format = '%d/%m/%Y'
     try:
-        start_dt = datetime.datetime.strptime(start, date_format) if start else None
-        end_dt = datetime.datetime.strptime(end, date_format) if end else None
+        import pandas as pd
+        start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
+        end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
     except Exception:
         start_dt = end_dt = None
     try:
@@ -677,8 +680,9 @@ def data_recaudacion():
     end = request.args.get('end')
     date_format = '%d/%m/%Y'
     try:
-        start_dt = datetime.datetime.strptime(start, date_format) if start else None
-        end_dt = datetime.datetime.strptime(end, date_format) if end else None
+        import pandas as pd
+        start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
+        end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
     except Exception:
         start_dt = end_dt = None
     try:
