@@ -8,6 +8,7 @@ import subprocess
 import sys
 import os
 import json
+import traceback
 try:
     import psutil
 except ImportError:
@@ -371,116 +372,122 @@ def data_page():
 # Endpoint de métricas
 @app.route("/data-metrics", methods=["GET"])
 def data_metrics():
-    import pandas as pd
-    import datetime
-    from flask import request
-    start = request.args.get('start')
-    end = request.args.get('end')
-    date_format = '%d/%m/%Y'
     try:
         import pandas as pd
-        start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
-        end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
-    except Exception:
-        start_dt = end_dt = None
-    try:
-        df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
-    except Exception:
-        return {"status": "error", "message": "No se pudo leer el log"}
-    if start_dt is not None:
-        df = df[df["timestamp"] >= start_dt]
-    if end_dt is not None:
-        df = df[df["timestamp"] <= end_dt + pd.Timedelta(days=1)]
-    df["day"] = df["timestamp"].dt.date
-    df["hour"] = df["timestamp"].dt.hour
-    # Construcción de sesiones por station + connector_type
-    def build_sessions_timeout(grp):
+        import datetime
+        from flask import request
+        start = request.args.get('start')
+        end = request.args.get('end')
+        date_format = '%d/%m/%Y'
+        try:
+            import pandas as pd
+            start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
+            end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
+        except Exception:
+            start_dt = end_dt = None
+        print(f"[DEBUG] params: start={request.args.get('start')}, end={request.args.get('end')}")
+        try:
+            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+        except Exception:
+            return {"status": "error", "message": "No se pudo leer el log"}
+        if start_dt is not None:
+            df = df[df["timestamp"] >= start_dt]
+        if end_dt is not None:
+            df = df[df["timestamp"] <= end_dt + pd.Timedelta(days=1)]
+        df["day"] = df["timestamp"].dt.date
+        df["hour"] = df["timestamp"].dt.hour
+        print(f"[DEBUG] df['timestamp'] dtype: {df['timestamp'].dtype}, tz: {getattr(df['timestamp'].dt, 'tz', None)}")
+        # Construcción de sesiones por station + connector_type
+        def build_sessions_timeout(grp):
+            sessions = []
+            in_session = False
+            start_time = None
+            for idx, row in grp.iterrows():
+                ts = row["timestamp"]
+                status = row["status"]
+                if status == "Charging":
+                    if not in_session:
+                        start_time = ts
+                        in_session = True
+                else:
+                    if in_session:
+                        end_time = ts
+                        duration = (end_time - start_time).total_seconds() // 60
+                        if duration > 0:
+                            sessions.append((start_time, end_time, duration))
+                        in_session = False
+            if in_session and start_time is not None:
+                end_time = grp["timestamp"].max()
+                if end_time.tzinfo is None:
+                    end_time = end_time.tz_localize('America/Montevideo')
+                duration = (end_time - start_time).total_seconds() // 60
+                if duration > 0:
+                    sessions.append((start_time, end_time, duration))
+            return sessions
         sessions = []
-        in_session = False
-        start_time = None
-        for idx, row in grp.iterrows():
-            ts = row["timestamp"]
-            status = row["status"]
-            if status == "Charging":
-                if not in_session:
-                    start_time = ts
-                    in_session = True
-            else:
-                if in_session:
-                    end_time = ts
-                    duration = (end_time - start_time).total_seconds() // 60
-                    if duration > 0:
-                        sessions.append((start_time, end_time, duration))
-                    in_session = False
-        if in_session and start_time is not None:
-            end_time = grp["timestamp"].max()
-            if end_time.tzinfo is None:
-                end_time = end_time.tz_localize('America/Montevideo')
-            duration = (end_time - start_time).total_seconds() // 60
-            if duration > 0:
-                sessions.append((start_time, end_time, duration))
-        return sessions
-    sessions = []
-    for (station, connector), grp in df.groupby(["station", "connector_type"]):
-        grp = grp.sort_values("timestamp").reset_index(drop=True)
-        for start, end, mins in build_sessions_timeout(grp):
-            is_last = False
-            if end == grp["timestamp"].max() and grp.iloc[-1]["status"] == "Charging":
-                is_last = True
-            sessions.append({
-                "station": station,
-                "connector": connector,
-                "start": start,
-                "end": end,
-                "duration": int(mins),
-                "in_progress": is_last
-            })
-    sessions_df = pd.DataFrame(sessions)
-    # --- Rankings por cargador ---
-    summary = sessions_df.groupby("station").agg(
-        total_duration = ("duration", "sum"),
-        num_connectors = ("connector", "nunique")
-    ).reset_index()
-    top_chargers = summary.sort_values("total_duration", ascending=False).head(10).to_dict(orient="records")
-    least_chargers = summary.sort_values("total_duration", ascending=True).head(10).to_dict(orient="records")
-    # --- Ranking de horas ---
-    # Para cada sesión, sumar minutos en cada hora involucrada
-    hour_usage = [0]*24
-    for _, row in sessions_df.iterrows():
-        if pd.isnull(row["start"]) or pd.isnull(row["end"]):
-            continue
-        current = row["start"]
-        end = row["end"]
-        # --- AJUSTE CRÍTICO: asegurar current y end tz-aware ---
-        if current.tzinfo is None:
-            current = current.tz_localize('America/Montevideo')
-        if end.tzinfo is None:
-            end = end.tz_localize('America/Montevideo')
-        # --- LOG DE DIAGNÓSTICO ---
-        print(f"[DEBUG] current: {current}, tzinfo: {getattr(current, 'tzinfo', None)}")
-        print(f"[DEBUG] end: {end}, tzinfo: {getattr(end, 'tzinfo', None)}")
-        while current < end:
-            next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-            if next_hour.tzinfo is None:
-                next_hour = next_hour.tz_localize('America/Montevideo')
-            if next_hour > end:
-                next_hour = end
-            mins = int((next_hour - current).total_seconds() // 60)
-            hour_idx = current.hour
-            hour_usage[hour_idx] += mins
-            current = next_hour
-    top_hours = [
-        {"hour": h, "duration": hour_usage[h]}
-        for h in range(24)
-    ]
-    top_hours = sorted(top_hours, key=lambda x: x["duration"], reverse=True)[:10]
-    return {
-        "status": "ok",
-        "top_chargers": top_chargers,
-        "least_chargers": least_chargers,
-        "top_hours": top_hours
-    }
+        for (station, connector), grp in df.groupby(["station", "connector_type"]):
+            grp = grp.sort_values("timestamp").reset_index(drop=True)
+            for start, end, mins in build_sessions_timeout(grp):
+                is_last = False
+                if end == grp["timestamp"].max() and grp.iloc[-1]["status"] == "Charging":
+                    is_last = True
+                sessions.append({
+                    "station": station,
+                    "connector": connector,
+                    "start": start,
+                    "end": end,
+                    "duration": int(mins),
+                    "in_progress": is_last
+                })
+        sessions_df = pd.DataFrame(sessions)
+        # --- Rankings por cargador ---
+        summary = sessions_df.groupby("station").agg(
+            total_duration = ("duration", "sum"),
+            num_connectors = ("connector", "nunique")
+        ).reset_index()
+        top_chargers = summary.sort_values("total_duration", ascending=False).head(10).to_dict(orient="records")
+        least_chargers = summary.sort_values("total_duration", ascending=True).head(10).to_dict(orient="records")
+        # --- Ranking de horas ---
+        # Para cada sesión, sumar minutos en cada hora involucrada
+        hour_usage = [0]*24
+        for _, row in sessions_df.iterrows():
+            if pd.isnull(row["start"]) or pd.isnull(row["end"]):
+                continue
+            current = row["start"]
+            # --- AJUSTE CRÍTICO: asegurar current y end tz-aware ---
+            if current.tzinfo is None:
+                current = current.tz_localize('America/Montevideo')
+            if row["end"].tzinfo is None:
+                row["end"] = row["end"].tz_localize('America/Montevideo')
+            # --- LOG DE DIAGNÓSTICO ---
+            print(f"[DEBUG] current: {current}, tzinfo: {getattr(current, 'tzinfo', None)}")
+            print(f"[DEBUG] end: {row['end']}, tzinfo: {getattr(row['end'], 'tzinfo', None)}")
+            while current < row["end"]:
+                next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                if next_hour.tzinfo is None:
+                    next_hour = next_hour.tz_localize('America/Montevideo')
+                if next_hour > row["end"]:
+                    next_hour = row["end"]
+                mins = int((next_hour - current).total_seconds() // 60)
+                hour_idx = current.hour
+                hour_usage[hour_idx] += mins
+                current = next_hour
+        top_hours = [
+            {"hour": h, "duration": hour_usage[h]}
+            for h in range(24)
+        ]
+        top_hours = sorted(top_hours, key=lambda x: x["duration"], reverse=True)[:10]
+        return {
+            "status": "ok",
+            "top_chargers": top_chargers,
+            "least_chargers": least_chargers,
+            "top_hours": top_hours
+        }
+    except Exception as e:
+        print("[ERROR] Excepción en /data-metrics:")
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}
 
 
 # Endpoint de datos para el mapa (a implementar)
@@ -626,260 +633,274 @@ def data_demand_map():
 
 @app.route('/data-chargers-summary')
 def data_chargers_summary():
-    import pandas as pd
-    import datetime
-    from flask import request
-    start = request.args.get('start')
-    end = request.args.get('end')
-    date_format = '%d/%m/%Y'
     try:
         import pandas as pd
-        start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
-        end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
-    except Exception:
-        start_dt = end_dt = None
-    try:
-        df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
-    except Exception:
-        return {"status": "error", "message": "No se pudo leer el log"}
-    if start_dt is not None:
-        df = df[df["timestamp"] >= start_dt]
-    if end_dt is not None:
-        df = df[df["timestamp"] <= end_dt + pd.Timedelta(days=1)]
-    df["day"] = df["timestamp"].dt.date
-    df["hour"] = df["timestamp"].dt.hour
-    # Construcción de sesiones por station + connector_type
-    def build_sessions_timeout(grp):
+        import datetime
+        from flask import request
+        start = request.args.get('start')
+        end = request.args.get('end')
+        date_format = '%d/%m/%Y'
+        try:
+            import pandas as pd
+            start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
+            end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
+        except Exception:
+            start_dt = end_dt = None
+        print(f"[DEBUG] params: start={request.args.get('start')}, end={request.args.get('end')}")
+        try:
+            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+        except Exception:
+            return {"status": "error", "message": "No se pudo leer el log"}
+        if start_dt is not None:
+            df = df[df["timestamp"] >= start_dt]
+        if end_dt is not None:
+            df = df[df["timestamp"] <= end_dt + pd.Timedelta(days=1)]
+        df["day"] = df["timestamp"].dt.date
+        df["hour"] = df["timestamp"].dt.hour
+        print(f"[DEBUG] df['timestamp'] dtype: {df['timestamp'].dtype}, tz: {getattr(df['timestamp'].dt, 'tz', None)}")
+        # Construcción de sesiones por station + connector_type
+        def build_sessions_timeout(grp):
+            sessions = []
+            in_session = False
+            start_time = None
+            for idx, row in grp.iterrows():
+                ts = row["timestamp"]
+                status = row["status"]
+                if status == "Charging":
+                    if not in_session:
+                        start_time = ts
+                        in_session = True
+                else:
+                    if in_session:
+                        end_time = ts
+                        duration = (end_time - start_time).total_seconds() // 60
+                        if duration > 0:
+                            sessions.append((start_time, end_time, duration))
+                        in_session = False
+            if in_session and start_time is not None:
+                end_time = grp["timestamp"].max()
+                if end_time.tzinfo is None:
+                    end_time = end_time.tz_localize('America/Montevideo')
+                duration = (end_time - start_time).total_seconds() // 60
+                if duration > 0:
+                    sessions.append((start_time, end_time, duration))
+            return sessions
         sessions = []
-        in_session = False
-        start_time = None
-        for idx, row in grp.iterrows():
-            ts = row["timestamp"]
-            status = row["status"]
-            if status == "Charging":
-                if not in_session:
-                    start_time = ts
-                    in_session = True
-            else:
-                if in_session:
-                    end_time = ts
-                    duration = (end_time - start_time).total_seconds() // 60
-                    if duration > 0:
-                        sessions.append((start_time, end_time, duration))
-                    in_session = False
-        if in_session and start_time is not None:
-            end_time = grp["timestamp"].max()
-            if end_time.tzinfo is None:
-                end_time = end_time.tz_localize('America/Montevideo')
-            duration = (end_time - start_time).total_seconds() // 60
-            if duration > 0:
-                sessions.append((start_time, end_time, duration))
-        return sessions
-    sessions = []
-    for (station, connector), grp in df.groupby(["station", "connector_type"]):
-        grp = grp.sort_values("timestamp").reset_index(drop=True)
-        for start, end, mins in build_sessions_timeout(grp):
-            is_last = False
-            if end == grp["timestamp"].max() and grp.iloc[-1]["status"] == "Charging":
-                is_last = True
-            sessions.append({
-                "station": station,
-                "connector": connector,
-                "start": start,
-                "end": end,
-                "duration": int(mins),
-                "in_progress": is_last
-            })
-    sessions_df = pd.DataFrame(sessions)
-    # Agrupar por station (cargador)
-    summary = sessions_df.groupby("station").agg(
-        total_duration = ("duration", "sum"),
-        num_connectors = ("connector", "nunique")
-    ).reset_index()
-    summary_list = summary.to_dict(orient="records")
-    return {"status": "ok", "chargers": summary_list}
+        for (station, connector), grp in df.groupby(["station", "connector_type"]):
+            grp = grp.sort_values("timestamp").reset_index(drop=True)
+            for start, end, mins in build_sessions_timeout(grp):
+                is_last = False
+                if end == grp["timestamp"].max() and grp.iloc[-1]["status"] == "Charging":
+                    is_last = True
+                sessions.append({
+                    "station": station,
+                    "connector": connector,
+                    "start": start,
+                    "end": end,
+                    "duration": int(mins),
+                    "in_progress": is_last
+                })
+        sessions_df = pd.DataFrame(sessions)
+        # Agrupar por station (cargador)
+        summary = sessions_df.groupby("station").agg(
+            total_duration = ("duration", "sum"),
+            num_connectors = ("connector", "nunique")
+        ).reset_index()
+        summary_list = summary.to_dict(orient="records")
+        return {"status": "ok", "chargers": summary_list}
+    except Exception as e:
+        print("[ERROR] Excepción en /data-chargers-summary:")
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}
 
 
 @app.route('/data-recaudacion')
 def data_recaudacion():
-    import pandas as pd
-    import datetime
-    from flask import request
-    import numpy as np
-    import os
-    import json
-    start = request.args.get('start')
-    end = request.args.get('end')
-    date_format = '%d/%m/%Y'
     try:
         import pandas as pd
-        start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
-        end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
-    except Exception:
-        start_dt = end_dt = None
-    try:
-        df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
-    except Exception:
-        return {"status": "error", "message": "No se pudo leer el log"}
-    # Leer tarifas desde el CSV
-    tarifas = {}
-    try:
-        tarifas_df = pd.read_csv("costo energia.csv")
-        for _, row in tarifas_df.iterrows():
-            key = (row["Tarifa"], row["Franja horaria"])
-            tarifas[key] = float(str(row["Precio estimado (UYU $/kWh)"]).replace(",","."))
-    except Exception as e:
+        import datetime
+        from flask import request
+        import numpy as np
+        import os
+        import json
+        start = request.args.get('start')
+        end = request.args.get('end')
+        date_format = '%d/%m/%Y'
+        try:
+            import pandas as pd
+            start_dt = pd.to_datetime(start, format=date_format).tz_localize('America/Montevideo') if start else None
+            end_dt = pd.to_datetime(end, format=date_format).tz_localize('America/Montevideo') if end else None
+        except Exception:
+            start_dt = end_dt = None
+        print(f"[DEBUG] params: start={request.args.get('start')}, end={request.args.get('end')}")
+        try:
+            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
+            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+        except Exception:
+            return {"status": "error", "message": "No se pudo leer el log"}
+        # Leer tarifas desde el CSV
         tarifas = {}
-    if start_dt is not None and end_dt is not None and start_dt.date() == end_dt.date():
-        mask = (df["timestamp"].dt.date == start_dt.date())
-        df = df[mask]
-    else:
-        if start_dt is not None:
-            df = df[df["timestamp"] >= start_dt]
-        if end_dt is not None:
-            end_dt_full = end_dt + datetime.timedelta(days=1) - datetime.timedelta(seconds=1)
-            df = df[df["timestamp"] <= end_dt_full]
-    def build_sessions_timeout(grp):
-        sessions = []
-        in_session = False
-        start_time = None
-        for idx, row in grp.iterrows():
-            ts = row["timestamp"]
-            status = row["status"]
-            if status == "Charging":
-                if not in_session:
-                    start_time = ts
-                    in_session = True
-            else:
-                if in_session:
-                    end_time = ts
-                    duration = (end_time - start_time).total_seconds() // 60
-                    if duration > 0:
-                        sessions.append((start_time, end_time, duration))
-                    in_session = False
-        if in_session and start_time is not None:
-            end_time = grp["timestamp"].max()
-            if end_time.tzinfo is None:
-                end_time = end_time.tz_localize('America/Montevideo')
-            duration = (end_time - start_time).total_seconds() // 60
-            if duration > 0:
-                sessions.append((start_time, end_time, duration))
-        return sessions
-    sessions = []
-    for (station, connector), grp in df.groupby(["station", "connector_type"]):
-        grp = grp.sort_values("timestamp").reset_index(drop=True)
-        for start_s, end_s, mins in build_sessions_timeout(grp):
-            sessions.append({
-                "station": station,
-                "connector": connector,
-                "start": start_s,
-                "end": end_s,
-                "duration": int(mins)
-            })
-    sessions_df = pd.DataFrame(sessions)
-    if sessions_df.empty:
-        return {"status": "ok", "recaudacion": []}
-    # Agrupar por station
-    summary = sessions_df.groupby("station").agg(
-        total_minutes = ("duration", "sum"),
-        num_connectors = ("connector", "nunique"),
-        conexiones = ("start", "count")
-    ).reset_index()
-    recaudacion_list = []
-    for idx, row in summary.iterrows():
-        nombre = row["station"]
-        minutos = row["total_minutes"]
-        conexiones = row["conexiones"]
-        conectores = row["num_connectors"]
-        # Calcular energía total y por franja
-        kwh = (minutos / 60) * 60  # Potencia promedio 60 kW
-        kwh_punta = 0
-        kwh_llano = 0
-        kwh_valle = 0
-        if not sessions_df[sessions_df["station"] == nombre].empty:
-            for _, srow in sessions_df[sessions_df["station"] == nombre].iterrows():
-                start_s = srow["start"]
-                end_s = srow["end"]
-                if pd.isnull(start_s) or pd.isnull(end_s):
-                    continue
-                current = start_s
-                # --- AJUSTE CRÍTICO: asegurar current y end_s tz-aware ---
-                if current.tzinfo is None:
-                    current = current.tz_localize('America/Montevideo')
-                if end_s.tzinfo is None:
-                    end_s = end_s.tz_localize('America/Montevideo')
-                # --- LOG DE DIAGNÓSTICO ---
-                print(f"[DEBUG] current: {current}, tzinfo: {getattr(current, 'tzinfo', None)}")
-                print(f"[DEBUG] end_s: {end_s}, tzinfo: {getattr(end_s, 'tzinfo', None)}")
-                while current < end_s:
-                    next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-                    if next_hour.tzinfo is None:
-                        next_hour = next_hour.tz_localize('America/Montevideo')
-                    if next_hour > end_s:
-                        next_hour = end_s
-                    mins = int((next_hour - current).total_seconds() // 60)
-                    hour = current.hour
-                    # Horario punta: 18-22
-                    if 18 <= hour < 22:
-                        kwh_punta += (mins / 60) * 60
-                    # Horario valle: 0-6
-                    elif 0 <= hour < 6:
-                        kwh_valle += (mins / 60) * 60
-                    else:
-                        kwh_llano += (mins / 60) * 60
-                    current = next_hour
-        # Calcular recaudación original
-        nota = ""
-        recaudacion = None
-        nombre_low = nombre.lower()
-        if "ute" in nombre_low:
-            recaudacion = conexiones * 121.9 + kwh * 10.8
-        elif "eone" in nombre_low:
-            recaudacion = kwh * 13.42
+        try:
+            tarifas_df = pd.read_csv("costo energia.csv")
+            for _, row in tarifas_df.iterrows():
+                key = (row["Tarifa"], row["Franja horaria"])
+                tarifas[key] = float(str(row["Precio estimado (UYU $/kWh)"]).replace(",","."))
+        except Exception as e:
+            tarifas = {}
+        if start_dt is not None and end_dt is not None and start_dt.date() == end_dt.date():
+            mask = (df["timestamp"].dt.date == start_dt.date())
+            df = df[mask]
         else:
+            if start_dt is not None:
+                df = df[df["timestamp"] >= start_dt]
+            if end_dt is not None:
+                end_dt_full = end_dt + datetime.timedelta(days=1) - datetime.timedelta(seconds=1)
+                df = df[df["timestamp"] <= end_dt_full]
+        print(f"[DEBUG] df['timestamp'] dtype: {df['timestamp'].dtype}, tz: {getattr(df['timestamp'].dt, 'tz', None)}")
+        def build_sessions_timeout(grp):
+            sessions = []
+            in_session = False
+            start_time = None
+            for idx, row in grp.iterrows():
+                ts = row["timestamp"]
+                status = row["status"]
+                if status == "Charging":
+                    if not in_session:
+                        start_time = ts
+                        in_session = True
+                else:
+                    if in_session:
+                        end_time = ts
+                        duration = (end_time - start_time).total_seconds() // 60
+                        if duration > 0:
+                            sessions.append((start_time, end_time, duration))
+                        in_session = False
+            if in_session and start_time is not None:
+                end_time = grp["timestamp"].max()
+                if end_time.tzinfo is None:
+                    end_time = end_time.tz_localize('America/Montevideo')
+                duration = (end_time - start_time).total_seconds() // 60
+                if duration > 0:
+                    sessions.append((start_time, end_time, duration))
+            return sessions
+        sessions = []
+        for (station, connector), grp in df.groupby(["station", "connector_type"]):
+            grp = grp.sort_values("timestamp").reset_index(drop=True)
+            for start_s, end_s, mins in build_sessions_timeout(grp):
+                sessions.append({
+                    "station": station,
+                    "connector": connector,
+                    "start": start_s,
+                    "end": end_s,
+                    "duration": int(mins)
+                })
+        sessions_df = pd.DataFrame(sessions)
+        if sessions_df.empty:
+            return {"status": "ok", "recaudacion": []}
+        # Agrupar por station
+        summary = sessions_df.groupby("station").agg(
+            total_minutes = ("duration", "sum"),
+            num_connectors = ("connector", "nunique"),
+            conexiones = ("start", "count")
+        ).reset_index()
+        recaudacion_list = []
+        for idx, row in summary.iterrows():
+            nombre = row["station"]
+            minutos = row["total_minutes"]
+            conexiones = row["conexiones"]
+            conectores = row["num_connectors"]
+            # Calcular energía total y por franja
+            kwh = (minutos / 60) * 60  # Potencia promedio 60 kW
+            kwh_punta = 0
+            kwh_llano = 0
+            kwh_valle = 0
             if not sessions_df[sessions_df["station"] == nombre].empty:
-                recaudacion = kwh_llano * 12.54 + kwh_punta * 25.62
+                for _, srow in sessions_df[sessions_df["station"] == nombre].iterrows():
+                    start_s = srow["start"]
+                    end_s = srow["end"]
+                    if pd.isnull(start_s) or pd.isnull(end_s):
+                        continue
+                    current = start_s
+                    # --- AJUSTE CRÍTICO: asegurar current y end_s tz-aware ---
+                    if current.tzinfo is None:
+                        current = current.tz_localize('America/Montevideo')
+                    if end_s.tzinfo is None:
+                        end_s = end_s.tz_localize('America/Montevideo')
+                    # --- LOG DE DIAGNÓSTICO ---
+                    print(f"[DEBUG] current: {current}, tzinfo: {getattr(current, 'tzinfo', None)}")
+                    print(f"[DEBUG] end_s: {end_s}, tzinfo: {getattr(end_s, 'tzinfo', None)}")
+                    while current < end_s:
+                        next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                        if next_hour.tzinfo is None:
+                            next_hour = next_hour.tz_localize('America/Montevideo')
+                        if next_hour > end_s:
+                            next_hour = end_s
+                        mins = int((next_hour - current).total_seconds() // 60)
+                        hour = current.hour
+                        # Horario punta: 18-22
+                        if 18 <= hour < 22:
+                            kwh_punta += (mins / 60) * 60
+                        # Horario valle: 0-6
+                        elif 0 <= hour < 6:
+                            kwh_valle += (mins / 60) * 60
+                        else:
+                            kwh_llano += (mins / 60) * 60
+                        current = next_hour
+            # Calcular recaudación original
+            nota = ""
+            recaudacion = None
+            nombre_low = nombre.lower()
+            if "ute" in nombre_low:
+                recaudacion = conexiones * 121.9 + kwh * 10.8
+            elif "eone" in nombre_low:
+                recaudacion = kwh * 13.42
             else:
+                if not sessions_df[sessions_df["station"] == nombre].empty:
+                    recaudacion = kwh_llano * 12.54 + kwh_punta * 25.62
+                else:
+                    nota = "Faltan datos"
+            if recaudacion is None:
                 nota = "Faltan datos"
-        if recaudacion is None:
-            nota = "Faltan datos"
-        # Escenarios de costo
-        # 1. SG (Simple)
-        costo_sg = kwh * tarifas.get(("SG (Simple)", "Todo el día"), 0)
-        # 2. SDBH (Horaria) - buscar por inclusión en vez de coincidencia exacta
-        tarifa_punta = next((v for (t, f), v in tarifas.items() if t == "SDBH (Horaria)" and "Punta" in f), 0)
-        tarifa_llano = next((v for (t, f), v in tarifas.items() if t == "SDBH (Horaria)" and ("Llano" in f or "Valle" in f)), 0)
-        costo_sdbh = kwh_punta * tarifa_punta + kwh_llano * tarifa_llano
-        # 3. GDM (Media tensión)
-        tarifa_gdm_punta = next((v for (t, f), v in tarifas.items() if t == "GDM (Media tensión)" and "Punta" in f), 0)
-        tarifa_gdm_llano = next((v for (t, f), v in tarifas.items() if t == "GDM (Media tensión)" and "Llano" in f), 0)
-        tarifa_gdm_valle = next((v for (t, f), v in tarifas.items() if t == "GDM (Media tensión)" and "Valle" in f), 0)
-        costo_gdm = kwh_punta * tarifa_gdm_punta + kwh_llano * tarifa_gdm_llano + kwh_valle * tarifa_gdm_valle
-        # 4. GMT (Grandes Usuarios)
-        costo_gmt = kwh * tarifas.get(("GMT (Grandes Usuarios)", "Variable"), 0)
-        # Recaudación neta
-        neta_sg = recaudacion - costo_sg if recaudacion is not None else None
-        neta_sdbh = recaudacion - costo_sdbh if recaudacion is not None else None
-        neta_gdm = recaudacion - costo_gdm if recaudacion is not None else None
-        neta_gmt = recaudacion - costo_gmt if recaudacion is not None else None
-        recaudacion_list.append({
-            "station": nombre,
-            "kwh": float(f"{kwh:.2f}"),
-            "recaudacion": float(f"{recaudacion:.2f}") if recaudacion is not None else None,
-            "num_connectors": conectores,
-            "nota": nota,
-            "costo_sg": float(f"{costo_sg:.2f}"),
-            "costo_sdbh": float(f"{costo_sdbh:.2f}"),
-            "costo_gdm": float(f"{costo_gdm:.2f}"),
-            "costo_gmt": float(f"{costo_gmt:.2f}"),
-            "neta_sg": float(f"{neta_sg:.2f}") if neta_sg is not None else None,
-            "neta_sdbh": float(f"{neta_sdbh:.2f}") if neta_sdbh is not None else None,
-            "neta_gdm": float(f"{neta_gdm:.2f}") if neta_gdm is not None else None,
-            "neta_gmt": float(f"{neta_gmt:.2f}") if neta_gmt is not None else None
-        })
-    return {"status": "ok", "recaudacion": recaudacion_list}
+            # Escenarios de costo
+            # 1. SG (Simple)
+            costo_sg = kwh * tarifas.get(("SG (Simple)", "Todo el día"), 0)
+            # 2. SDBH (Horaria) - buscar por inclusión en vez de coincidencia exacta
+            tarifa_punta = next((v for (t, f), v in tarifas.items() if t == "SDBH (Horaria)" and "Punta" in f), 0)
+            tarifa_llano = next((v for (t, f), v in tarifas.items() if t == "SDBH (Horaria)" and ("Llano" in f or "Valle" in f)), 0)
+            costo_sdbh = kwh_punta * tarifa_punta + kwh_llano * tarifa_llano
+            # 3. GDM (Media tensión)
+            tarifa_gdm_punta = next((v for (t, f), v in tarifas.items() if t == "GDM (Media tensión)" and "Punta" in f), 0)
+            tarifa_gdm_llano = next((v for (t, f), v in tarifas.items() if t == "GDM (Media tensión)" and "Llano" in f), 0)
+            tarifa_gdm_valle = next((v for (t, f), v in tarifas.items() if t == "GDM (Media tensión)" and "Valle" in f), 0)
+            costo_gdm = kwh_punta * tarifa_gdm_punta + kwh_llano * tarifa_gdm_llano + kwh_valle * tarifa_gdm_valle
+            # 4. GMT (Grandes Usuarios)
+            costo_gmt = kwh * tarifas.get(("GMT (Grandes Usuarios)", "Variable"), 0)
+            # Recaudación neta
+            neta_sg = recaudacion - costo_sg if recaudacion is not None else None
+            neta_sdbh = recaudacion - costo_sdbh if recaudacion is not None else None
+            neta_gdm = recaudacion - costo_gdm if recaudacion is not None else None
+            neta_gmt = recaudacion - costo_gmt if recaudacion is not None else None
+            recaudacion_list.append({
+                "station": nombre,
+                "kwh": float(f"{kwh:.2f}"),
+                "recaudacion": float(f"{recaudacion:.2f}") if recaudacion is not None else None,
+                "num_connectors": conectores,
+                "nota": nota,
+                "costo_sg": float(f"{costo_sg:.2f}"),
+                "costo_sdbh": float(f"{costo_sdbh:.2f}"),
+                "costo_gdm": float(f"{costo_gdm:.2f}"),
+                "costo_gmt": float(f"{costo_gmt:.2f}"),
+                "neta_sg": float(f"{neta_sg:.2f}") if neta_sg is not None else None,
+                "neta_sdbh": float(f"{neta_sdbh:.2f}") if neta_sdbh is not None else None,
+                "neta_gdm": float(f"{neta_gdm:.2f}") if neta_gdm is not None else None,
+                "neta_gmt": float(f"{neta_gmt:.2f}") if neta_gmt is not None else None
+            })
+        return {"status": "ok", "recaudacion": recaudacion_list}
+    except Exception as e:
+        print("[ERROR] Excepción en /data-recaudacion:")
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}
 
 
 @app.route('/recaudacion')
