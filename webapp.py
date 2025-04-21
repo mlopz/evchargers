@@ -296,6 +296,27 @@ HTML_TEMPLATE = '''
 </html>
 '''
 
+# --- UTILITARIO: Forzar timestamps tz-aware en America/Montevideo ---
+def localize_api_timestamps(records, keys=("start", "end", "timestamp")):
+    import pandas as pd
+    for rec in records:
+        for k in keys:
+            if k in rec and rec[k]:
+                try:
+                    # Si ya es pd.Timestamp y aware, dejar igual
+                    if hasattr(rec[k], 'tzinfo') and rec[k].tzinfo is not None:
+                        continue
+                    # Si termina en Z o tiene UTC, parsear y convertir
+                    if isinstance(rec[k], str) and rec[k].endswith('Z'):
+                        rec[k] = pd.to_datetime(rec[k], utc=True).tz_convert('America/Montevideo')
+                    else:
+                        # Si es string naive, parsear y localizar
+                        rec[k] = pd.to_datetime(rec[k])
+                        if rec[k].tzinfo is None:
+                            rec[k] = rec[k].tz_localize('America/Montevideo')
+                except Exception as e:
+                    print(f"[DEBUG] Error localizando {k}: {rec[k]} - {e}")
+    return records
 
 @app.route("/", methods=["GET"])
 def index():
@@ -436,6 +457,9 @@ def data_metrics():
             current = current.tz_localize('America/Montevideo')
         if end.tzinfo is None:
             end = end.tz_localize('America/Montevideo')
+        # --- LOG DE DIAGNÓSTICO ---
+        print(f"[DEBUG] current: {current}, tzinfo: {getattr(current, 'tzinfo', None)}")
+        print(f"[DEBUG] end: {end}, tzinfo: {getattr(end, 'tzinfo', None)}")
         while current < end:
             next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
             if next_hour.tzinfo is None:
@@ -684,6 +708,7 @@ def data_recaudacion():
     from flask import request
     import numpy as np
     import os
+    import json
     start = request.args.get('start')
     end = request.args.get('end')
     date_format = '%d/%m/%Y'
@@ -785,6 +810,9 @@ def data_recaudacion():
                     current = current.tz_localize('America/Montevideo')
                 if end_s.tzinfo is None:
                     end_s = end_s.tz_localize('America/Montevideo')
+                # --- LOG DE DIAGNÓSTICO ---
+                print(f"[DEBUG] current: {current}, tzinfo: {getattr(current, 'tzinfo', None)}")
+                print(f"[DEBUG] end_s: {end_s}, tzinfo: {getattr(end_s, 'tzinfo', None)}")
                 while current < end_s:
                     next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
                     if next_hour.tzinfo is None:
