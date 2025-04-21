@@ -152,8 +152,9 @@ function cargarRecaudacion(start, end) {
     });
 }
 $(function() {
-    let start = moment().subtract(30, 'days');
-    let end = moment();
+    // Siempre usar fechas naive (sin zona horaria)
+    let start = moment().subtract(30, 'days'); // naive
+    let end = moment(); // naive
     function cb(start, end) {
         $('#daterange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
         cargarRecaudacion(start.format('DD/MM/YYYY'), end.format('DD/MM/YYYY'));
@@ -176,6 +177,7 @@ $(function() {
     }, cb);
     cb(start, end);
 });
+// Si en el futuro recibes fechas con zona: usar moment.parseZone(fecha)
 </script>
 </body>
 </html>
