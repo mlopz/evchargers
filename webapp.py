@@ -438,6 +438,8 @@ def data_metrics():
         current = start
         while current < end:
             next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+            if next_hour.tzinfo is None:
+                next_hour = next_hour.tz_localize('America/Montevideo')
             if next_hour > end:
                 next_hour = end
             mins = int((next_hour - current).total_seconds() // 60)
@@ -780,6 +782,8 @@ def data_recaudacion():
                 current = start_s
                 while current < end_s:
                     next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                    if next_hour.tzinfo is None:
+                        next_hour = next_hour.tz_localize('America/Montevideo')
                     if next_hour > end_s:
                         next_hour = end_s
                     mins = int((next_hour - current).total_seconds() // 60)
