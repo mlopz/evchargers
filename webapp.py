@@ -429,13 +429,13 @@ def data_metrics():
     for _, row in sessions_df.iterrows():
         if pd.isnull(row["start"]) or pd.isnull(row["end"]):
             continue
-        start = row["start"]
+        current = row["start"]
         end = row["end"]
-        duration = row["duration"]
-        if duration <= 0:
-            continue
-        # Distribuir los minutos entre las horas involucradas
-        current = start
+        # --- AJUSTE CRÍTICO: asegurar current y end tz-aware ---
+        if current.tzinfo is None:
+            current = current.tz_localize('America/Montevideo')
+        if end.tzinfo is None:
+            end = end.tz_localize('America/Montevideo')
         while current < end:
             next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
             if next_hour.tzinfo is None:
@@ -780,6 +780,11 @@ def data_recaudacion():
                 if pd.isnull(start_s) or pd.isnull(end_s):
                     continue
                 current = start_s
+                # --- AJUSTE CRÍTICO: asegurar current y end_s tz-aware ---
+                if current.tzinfo is None:
+                    current = current.tz_localize('America/Montevideo')
+                if end_s.tzinfo is None:
+                    end_s = end_s.tz_localize('America/Montevideo')
                 while current < end_s:
                     next_hour = (current + pd.Timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
                     if next_hour.tzinfo is None:
