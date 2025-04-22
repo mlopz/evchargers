@@ -1,8 +1,8 @@
 Tensión,Tarifa,Franja horaria,Precio estimado (UYU $/kWh),Notas
-Baja tensión,SG (Simple),Todo el día,8.57,Tarifa plana
-Baja tensión,SDBH (Horaria),Punta (18–22 h),13.82,Tarifa horaria – carga más cara
+Baja tensión,SG (Simple),Todo el día,9,Tarifa plana
+Baja tensión,SDBH (Horaria),Punta (18–22 h),14.5,Tarifa horaria – carga más cara
 Baja tensión,SDBH (Horaria),"Llano/Valle (0–18 h, 22–24 h)",6.93,Tarifa horaria – carga más barata
 Media tensión,GDM (Media tensión),Punta,10.5,Requiere contrato de potencia
 Media tensión,GDM (Media tensión),Llano,6.5,
 Media tensión,GDM (Media tensión),Valle,3.5,Ideal para carga nocturna
-Media tensión,GMT (Grandes Usuarios),Variable,2.0,Depende del perfil de carga
+Media tensión,GMT (Grandes Usuarios),Variable,4.0,Depende del perfil de carga
