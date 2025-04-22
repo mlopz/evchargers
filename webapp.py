@@ -27,11 +27,27 @@ COLUMNS = [
     "Estado",
     "Potencia (kW)",
     "Sesiones de carga",
-    "Cargando Hace",
-    "Última sesión"
+    "kWh estimados"
 ]
 
 TIMEOUT_MINUTES = 2  # Umbral de hueco para desconexión
+
+# --- Cambios para usar SQLite en vez de CSV ---
+import sqlite3
+
+DB_FILE = "monitor_log.db"
+
+# --- NUEVA función para cargar el log desde SQLite ---
+def load_sessions_log():
+    import pandas as pd
+    conn = sqlite3.connect(DB_FILE)
+    df = pd.read_sql_query("SELECT timestamp, station, connector_type, status FROM sessions_log", conn,
+                          parse_dates=["timestamp"])
+    conn.close()
+    # Convertir a tz-aware Montevideo
+    if not df.empty:
+        df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert('America/Montevideo')
+    return df
 
 def build_sessions_with_timeout(df):
     # Devuelve lista de sesiones (inicio, fin, duración) considerando huecos
@@ -85,12 +101,12 @@ def fetch_data(url):
             records = data
         else:
             records = []
-        # Cargar log de sesiones
+        # Cargar log de sesiones desde SQLite
         try:
-            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
-        except Exception:
-            df = pd.DataFrame(columns=["timestamp","station","connector_type","status"])
+            df = load_sessions_log()
+        except Exception as e:
+            print('[ERROR] Al cargar sesiones desde SQLite:', e)
+            df = pd.DataFrame(columns=["timestamp", "station", "connector_type", "status"])
         rows = []
         # --- AJUSTE: usar now con tz-aware ---
         import pytz
@@ -117,46 +133,25 @@ def fetch_data(url):
                     estado = c.get("status", "")
                     # Buscar sesiones para este conector único
                     sesiones = []
-                    cargando_hace = "-"
-                    ultima_sesion = "-"
+                    total_kwh = 0
                     if not df.empty:
                         log_filt = df[(df["station"] == name) & (df["connector_type"] == connector_id)]
                         sesiones_list = build_sessions_with_timeout(log_filt)
                         if sesiones_list:
                             sesiones = len(sesiones_list)
-                            last_session = sesiones_list[-1]
-                            if last_session.get("in_progress"):
-                                # --- AJUSTE: asegurar que ambas fechas sean tz-aware y en America/Montevideo ---
-                                start_dt = pd.to_datetime(last_session.get("start"))
-                                if start_dt.tzinfo is None:
-                                    # Si es naive, asumir UTC y convertir a Montevideo
-                                    import pytz
-                                    start_dt = pytz.UTC.localize(start_dt).astimezone(tz_mvd)
-                                else:
-                                    # Si ya tiene zona, convertir a Montevideo si hace falta
-                                    start_dt = start_dt.astimezone(tz_mvd)
-                                print(f"[DEBUG] now: {now} ({now.tzinfo}), start_dt: {start_dt} ({start_dt.tzinfo})")
-                                minutos = int((now - start_dt.to_pydatetime()).total_seconds() // 60)
-                                cargando_hace = f"{minutos} min"
-                            if last_session.get("end"):
-                                end_dt = pd.to_datetime(last_session.get("end"))
-                                if end_dt.tzinfo is None:
-                                    # Si es naive, asumir UTC y convertir a Montevideo
-                                    import pytz
-                                    end_dt = pytz.UTC.localize(end_dt).astimezone(tz_mvd)
-                                else:
-                                    # Si ya tiene zona, convertir a Montevideo si hace falta
-                                    end_dt = end_dt.astimezone(tz_mvd)
-                                print(f"[DEBUG] ultima_sesion end_dt: {end_dt} ({end_dt.tzinfo})")
-                                ultima_sesion = end_dt.strftime("%d/%m/%Y %H:%M")
+                            for sesion in sesiones_list:
+                                if sesion.get('duration', 0) > 0:
+                                    potencia = power if isinstance(power, (int, float)) else 0
+                                    minutos = sesion.get('duration', 0)
+                                    total_kwh += (minutos / 60) * potencia
+                    total_kwh = int(total_kwh)
                     row = [
                         name,
                         connector_id,
                         estado,
                         power,
                         sesiones,
-                        cargando_hace,
-                        ultima_sesion
+                        total_kwh
                     ]
                     rows.append(row)
         return rows, None
@@ -353,16 +348,13 @@ def sessions_detail():
     station = request.args.get("station")
     connector = request.args.get("connector")
     try:
-        df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+        df = load_sessions_log()
     except Exception:
         return jsonify([])
-    # Buscar por identificador único de conector
     log_filt = df[(df["station"] == station) & (df["connector_type"] == connector)]
     sessions = []
     if not log_filt.empty:
         sesiones_list = build_sessions_with_timeout(log_filt)
-        # Filtro final: eliminar sesiones de duración 0 SOLO si no están en curso
         sessions = [s for s in sesiones_list if (s.get('duration', 0) > 0 or s.get('in_progress', False))]
     return jsonify(sessions)
 
@@ -370,8 +362,7 @@ def sessions_detail():
 @app.route("/download-report", methods=["GET"])
 def download_report():
     # Leer logs y generar sesiones
-    df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-    df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+    df = load_sessions_log()
     sessions_df = build_sessions_with_timeout(df)
     # Generar archivo Excel en memoria
     output = BytesIO()
@@ -409,8 +400,7 @@ def data_metrics():
             start_dt = end_dt = None
         print(f"[DEBUG] params: start={request.args.get('start')}, end={request.args.get('end')}")
         try:
-            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+            df = load_sessions_log()
         except Exception:
             return {"status": "error", "message": "No se pudo leer el log"}
         if start_dt is not None:
@@ -578,8 +568,7 @@ def data_demand_map():
         start_dt = end_dt = None
     # Leer log
     try:
-        df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+        df = load_sessions_log()
     except Exception:
         return {"status": "error", "message": "No se pudo leer el log"}
     if start_dt is not None:
@@ -670,8 +659,7 @@ def data_chargers_summary():
             start_dt = end_dt = None
         print(f"[DEBUG] params: start={request.args.get('start')}, end={request.args.get('end')}")
         try:
-            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+            df = load_sessions_log()
         except Exception:
             return {"status": "error", "message": "No se pudo leer el log"}
         if start_dt is not None:
@@ -757,8 +745,7 @@ def data_recaudacion():
             start_dt = end_dt = None
         print(f"[DEBUG] params: start={request.args.get('start')}, end={request.args.get('end')}")
         try:
-            df = pd.read_csv("monitor_log.csv", parse_dates=["timestamp"])
-            df['timestamp'] = df['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/Montevideo')
+            df = load_sessions_log()
         except Exception:
             return {"status": "error", "message": "No se pudo leer el log"}
         # Leer tarifas desde el CSV
@@ -932,9 +919,12 @@ def recaudacion():
 
 @app.route('/limpiar-datos', methods=['POST'])
 def limpiar_datos():
-    import os
     try:
-        open('monitor_log.csv', 'w').close()
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute('DELETE FROM sessions_log')
+        conn.commit()
+        conn.close()
         return {'status': 'ok', 'message': 'Datos limpiados'}
     except Exception as e:
         return {'status': 'error', 'message': str(e)}

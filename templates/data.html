@@ -61,6 +61,7 @@
                   <tr>
                     <th>Cargador</th>
                     <th>Minutos totales</th>
+                    <th>kWh estimados</th>
                     <th>Conectores</th>
                   </tr>
                 </thead>
@@ -85,6 +86,7 @@
                   <tr>
                     <th>Cargador</th>
                     <th>Minutos totales</th>
+                    <th>kWh estimados</th>
                     <th>Conectores</th>
                   </tr>
                 </thead>
@@ -133,6 +135,7 @@
                   <tr>
                     <th>Cargador</th>
                     <th>Minutos totales</th>
+                    <th>kWh estimados</th>
                     <th>Conectores</th>
                   </tr>
                 </thead>
@@ -175,7 +178,7 @@
     function renderTopChargersTable(data) {
       let tbody = '';
       data.forEach((row, idx) => {
-        tbody += `<tr><td>${idx+1}</td><td>${row.station}</td><td><strong>${row.connector}</strong></td><td>${row.duration}</td></tr>`;
+        tbody += `<tr><td>${idx+1}</td><td>${row.station}</td><td>${row.duration}</td><td>${row.kwh}</td><td>${row.connector}</td></tr>`;
       });
       $('#table-top-chargers tbody').html(tbody);
       $('#table-top-chargers').DataTable({ destroy: true });
@@ -199,7 +202,7 @@
     function renderLeastChargersTable(data) {
       let tbody = '';
       data.forEach((row, idx) => {
-        tbody += `<tr><td>${idx+1}</td><td>${row.station}</td><td><strong>${row.connector}</strong></td><td>${row.duration}</td></tr>`;
+        tbody += `<tr><td>${idx+1}</td><td>${row.station}</td><td>${row.duration}</td><td>${row.kwh}</td><td>${row.connector}</td></tr>`;
       });
       $('#table-least-chargers tbody').html(tbody);
       $('#table-least-chargers').DataTable({ destroy: true });
@@ -377,11 +380,12 @@
                     tbody += `<tr>` +
                         `<td>${row.station}</td>` +
                         `<td>${row.total_duration}</td>` +
+                        `<td>${row.kwh}</td>` +
                         `<td>${row.num_connectors}</td>` +
                         `</tr>`;
                 });
             } else {
-                tbody = '<tr><td colspan="3" class="text-center text-muted">Sin datos en el rango seleccionado</td></tr>';
+                tbody = '<tr><td colspan="4" class="text-center text-muted">Sin datos en el rango seleccionado</td></tr>';
             }
             $('#tbodyCargaPorCargador').html(tbody);
         });
@@ -396,11 +400,12 @@
                 topHtml += `<tr>`+
                   `<td>${row.station}</td>`+
                   `<td>${row.total_duration}</td>`+
+                  `<td>${row.kwh}</td>`+
                   `<td>${row.num_connectors}</td>`+
                   `</tr>`;
             });
         } else {
-            topHtml = '<tr><td colspan="3" class="text-center text-muted">Sin datos</td></tr>';
+            topHtml = '<tr><td colspan="4" class="text-center text-muted">Sin datos</td></tr>';
         }
         $('#tbodyTopCargadores').html(topHtml);
         // Top 10 menos usados
@@ -411,11 +416,12 @@
                 leastHtml += `<tr>`+
                   `<td>${row.station}</td>`+
                   `<td>${row.total_duration}</td>`+
+                  `<td>${row.kwh}</td>`+
                   `<td>${row.num_connectors}</td>`+
                   `</tr>`;
             });
         } else {
-            leastHtml = '<tr><td colspan="3" class="text-center text-muted">Sin datos</td></tr>';
+            leastHtml = '<tr><td colspan="4" class="text-center text-muted">Sin datos</td></tr>';
         }
         $('#tbodyLeastCargadores').html(leastHtml);
         // Top 10 horas

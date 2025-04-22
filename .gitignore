@@ -7,9 +7,12 @@ __pycache__/
 # costo energia.csv
 instance/
 .webassets-cache
+# Ignorar base de datos y archivos temporales
+monitor_log.db
+*.sqlite
+*.sqlite3
 *.db
 .DS_Store
-*.sqlite3
 *.log
 *.pot
 *.mo
